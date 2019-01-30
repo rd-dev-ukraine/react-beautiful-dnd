@@ -145,11 +145,12 @@ export default ({
 
         // preventing default as we are using this event
         event.preventDefault();
-        startDragging(() =>
+        startDragging(() =>{
           callbacks.onLift({
             clientSelection: point,
             movementMode: 'FLUID',
-          }),
+          })
+        },
         );
       },
     },

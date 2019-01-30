@@ -109,6 +109,7 @@ export default class DraggableDimensionPublisher extends Component<Props> {
   getDimension = (windowScroll?: Position = origin): DraggableDimension => {
     const targetRef: ?HTMLElement = this.props.getDraggableRef();
     const descriptor: ?DraggableDescriptor = this.publishedDescriptor;
+    const mousePosCords = this.props.dragableCenterCords;
 
     invariant(
       targetRef,
@@ -121,6 +122,14 @@ export default class DraggableDimensionPublisher extends Component<Props> {
     );
     const borderBox: ClientRect = targetRef.getBoundingClientRect();
     const client: BoxModel = calculateBox(borderBox, computedStyles);
+    if(mousePosCords) {
+      const {x , y} = mousePosCords;
+      client.borderBox.center = mousePosCords;
+      // client.contentBox.center.y = y;
+      client.borderBox.center.x = x;
+      console.log('new client cords' , client);
+    }
+    
     const page: BoxModel = withScroll(client, windowScroll);
 
     const placeholder: Placeholder = {

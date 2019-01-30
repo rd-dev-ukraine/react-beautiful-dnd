@@ -378,4 +378,5 @@ export type Responders = {|
   onDragUpdate?: OnDragUpdateResponder,
   // always required
   onDragEnd: OnDragEndResponder,
+  beforeEverything : any
 |};

@@ -94,6 +94,10 @@ export default class Draggable extends Component<Props> {
   constructor(props: Props, context: Object) {
     super(props, context);
 
+    this.state = {
+      cords : null
+    }
+
     const callbacks: DragHandleCallbacks = {
       onLift: this.onLift,
       onMove: (clientSelection: Position) =>
@@ -108,6 +112,7 @@ export default class Draggable extends Component<Props> {
         props.moveByWindowScroll({
           newScroll: getWindowScroll(),
         }),
+      setCords : (cords) => this.setState({cords} , () => console.log('cords set' , this.state))
     };
 
     this.callbacks = callbacks;
@@ -348,6 +353,8 @@ export default class Draggable extends Component<Props> {
         type={type}
         index={index}
         getDraggableRef={this.getDraggableRef}
+        dragableCenterCords={this.state.cords}
+        isDragging={isDragging}
       >
         <DragHandle
           draggableId={draggableId}

@@ -167,7 +167,14 @@ export default class DragDropContext extends React.Component<Props> {
   // pull this state off. It would cause a re-render of all items
   // on drag start which is too expensive.
   // This is useful when the user
-  canLift = (id: DraggableId) => canStartDrag(this.store.getState(), id);
+  canLift = (id: DraggableId) => {
+    const canStartDragResult = canStartDrag(this.store.getState(), id);
+    if(canStartDragResult && this.props.onBeforeEverything) {
+      this.props.onBeforeEverything(id);
+    }
+
+    return canStartDragResult;
+  };
 
   componentDidMount() {
     window.addEventListener('error', this.onWindowError);

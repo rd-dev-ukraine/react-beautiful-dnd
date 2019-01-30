@@ -204,7 +204,10 @@ export default class DragHandle extends Component<Props> {
     if (this.keyboardSensor.isCapturing() || this.mouseSensor.isCapturing()) {
       return;
     }
-
+    const x = event.pageX - event.target.offsetLeft;
+    const y = event.pageY - event.target.offsetTop;
+    this.props.callbacks.setCords({x , y})
+    console.log('cords' , {x , y});
     this.mouseSensor.onMouseDown(event);
   };
 
