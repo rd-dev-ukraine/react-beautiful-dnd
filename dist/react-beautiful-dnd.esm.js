@@ -12,6 +12,8 @@ import _Object$assign from '@babel/runtime-corejs2/core-js/object/assign';
 import _Date$now from '@babel/runtime-corejs2/core-js/date/now';
 import rafSchd from 'raf-schd';
 import { connect } from 'react-redux';
+import _regeneratorRuntime from '@babel/runtime-corejs2/regenerator';
+import _asyncToGenerator from '@babel/runtime-corejs2/helpers/esm/asyncToGenerator';
 import _Number$isInteger from '@babel/runtime-corejs2/core-js/number/is-integer';
 
 var origin = {
@@ -1259,7 +1261,7 @@ var getDraggableMap = (function (_ref) {
     });
   });
 
-  var draggableMap = _extends({}, existing.draggables, {}, shifted, {}, toDraggableMap(addedDraggables));
+  var draggableMap = _extends({}, existing.draggables, shifted, toDraggableMap(addedDraggables));
 
   removedDraggables.forEach(function (id) {
     delete draggableMap[id];
@@ -1403,7 +1405,7 @@ var publishWhileDragging = (function (_ref) {
   });
   var patched = {
     draggables: state.dimensions.draggables,
-    droppables: _extends({}, state.dimensions.droppables, {}, toDroppableMap(adjusted))
+    droppables: _extends({}, state.dimensions.droppables, toDroppableMap(adjusted))
   };
   var draggables = getDraggableMap({
     existing: patched,
@@ -3425,7 +3427,7 @@ var getAsyncMarshal = (function () {
       return;
     }
 
-    var shallow = entries.concat();
+    var shallow = [].concat(entries);
     entries.length = 0;
     shallow.forEach(function (entry) {
       clearTimeout(entry.timerId);
@@ -6121,21 +6123,11 @@ var DraggableDimensionPublisher = function (_Component) {
       var targetRef = _this.props.getDraggableRef();
 
       var descriptor = _this.publishedDescriptor;
-      var mousePosCords = _this.props.dragableCenterCords;
       !targetRef ? process.env.NODE_ENV !== "production" ? invariant(false, 'DraggableDimensionPublisher cannot calculate a dimension when not attached to the DOM') : invariant(false) : void 0;
       !descriptor ? process.env.NODE_ENV !== "production" ? invariant(false, 'Cannot get dimension for unpublished draggable') : invariant(false) : void 0;
       var computedStyles = window.getComputedStyle(targetRef);
       var borderBox = targetRef.getBoundingClientRect();
       var client = calculateBox(borderBox, computedStyles);
-
-      if (mousePosCords) {
-        var x = mousePosCords.x,
-            y = mousePosCords.y;
-        client.borderBox.center = mousePosCords;
-        client.borderBox.center.x = x;
-        console.log('new client cords', client);
-      }
-
       var page = withScroll(client, windowScroll);
       var placeholder = {
         client: client,
@@ -6153,6 +6145,13 @@ var DraggableDimensionPublisher = function (_Component) {
         client: client,
         page: page
       };
+      console.log({
+        props: _this.props,
+        descriptor: descriptor,
+        targetRef: targetRef,
+        box: client,
+        dimension: dimension
+      });
       return dimension;
     };
 
@@ -6162,14 +6161,26 @@ var DraggableDimensionPublisher = function (_Component) {
   var _proto = DraggableDimensionPublisher.prototype;
 
   _proto.componentDidMount = function componentDidMount() {
+    console.log({
+      method: 'componentDidMount',
+      props: this.props
+    });
     this.publish();
   };
 
   _proto.componentDidUpdate = function componentDidUpdate() {
+    console.log({
+      method: 'componentDidUpdate',
+      props: this.props
+    });
     this.publish();
   };
 
   _proto.componentWillUnmount = function componentWillUnmount() {
+    console.log({
+      method: 'componentWillUnmount',
+      props: this.props
+    });
     this.unpublish();
   };
 
@@ -6396,7 +6407,7 @@ var preventStandardKeyEvents = (function (event) {
 });
 
 var getOptions = function getOptions(shared, fromBinding) {
-  return _extends({}, shared, {}, fromBinding);
+  return _extends({}, shared, fromBinding);
 };
 
 var bindEvents = function bindEvents(el, bindings, sharedOptions) {
@@ -6502,6 +6513,31 @@ var supportedEventName = function () {
   return supported || base;
 }();
 
+function AutoExecutingQueue () {
+  this.isBlocked = false;
+  this.pendingFns = [];
+
+  this.schelude = function (fn) {
+    if (this.isBlocked) {
+      this.pendingFns.push(fn);
+    } else {
+      fn();
+    }
+  };
+
+  this.block = function () {
+    this.isBlocked = true;
+  };
+
+  this.unblock = function () {
+    this.isBlocked = false;
+    this.pendingFns.forEach(function (f) {
+      return f();
+    });
+    this.pendingFns = [];
+  };
+}
+
 var primaryButton = 0;
 
 var noop = function noop() {};
@@ -6511,6 +6547,7 @@ var createMouseSensor = (function (_ref) {
   var callbacks = _ref.callbacks,
       getWindow = _ref.getWindow,
       canStartCapturing = _ref.canStartCapturing;
+  var queue = new AutoExecutingQueue();
   var state = {
     isDragging: false,
     pending: null
@@ -6606,40 +6643,58 @@ var createMouseSensor = (function (_ref) {
   var windowBindings = [{
     eventName: 'mousemove',
     fn: function fn(event) {
-      var button = event.button,
-          clientX = event.clientX,
-          clientY = event.clientY;
+      queue.schelude(function () {
+        var button = event.button,
+            clientX = event.clientX,
+            clientY = event.clientY;
 
-      if (button !== primaryButton) {
-        return;
-      }
+        if (button !== primaryButton) {
+          return;
+        }
 
-      var point = {
-        x: clientX,
-        y: clientY
-      };
+        var point = {
+          x: clientX,
+          y: clientY
+        };
 
-      if (state.isDragging) {
+        if (state.isDragging) {
+          event.preventDefault();
+          schedule.move(point);
+          return;
+        }
+
+        if (!state.pending) {
+          stopPendingDrag();
+          process.env.NODE_ENV !== "production" ? invariant(false, 'Expected there to be an active or pending drag when window mousemove event is received') : invariant(false);
+        }
+
+        if (!isSloppyClickThresholdExceeded(state.pending, point)) {
+          return;
+        }
+
         event.preventDefault();
-        schedule.move(point);
-        return;
-      }
+        startDragging(_asyncToGenerator(_regeneratorRuntime.mark(function _callee() {
+          return _regeneratorRuntime.wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  queue.block();
+                  _context.next = 3;
+                  return callbacks.onLift({
+                    clientSelection: point,
+                    movementMode: 'FLUID'
+                  });
 
-      if (!state.pending) {
-        stopPendingDrag();
-        process.env.NODE_ENV !== "production" ? invariant(false, 'Expected there to be an active or pending drag when window mousemove event is received') : invariant(false);
-      }
+                case 3:
+                  queue.unblock();
 
-      if (!isSloppyClickThresholdExceeded(state.pending, point)) {
-        return;
-      }
-
-      event.preventDefault();
-      startDragging(function () {
-        callbacks.onLift({
-          clientSelection: point,
-          movementMode: 'FLUID'
-        });
+                case 4:
+                case "end":
+                  return _context.stop();
+              }
+            }
+          }, _callee, this);
+        })));
       });
     }
   }, {
@@ -7018,7 +7073,7 @@ var createTouchSensor = (function (_ref) {
   var state = initial;
 
   var setState = function setState(partial) {
-    state = _extends({}, state, {}, partial);
+    state = _extends({}, state, partial);
   };
 
   var isDragging = function isDragging() {
@@ -7311,19 +7366,6 @@ var DragHandle = function (_Component) {
         return;
       }
 
-      var x = event.pageX - event.target.offsetLeft;
-      var y = event.pageY - event.target.offsetTop;
-
-      _this.props.callbacks.setCords({
-        x: x,
-        y: y
-      });
-
-      console.log('cords', {
-        x: x,
-        y: y
-      });
-
       _this.mouseSensor.onMouseDown(event);
     };
 
@@ -7554,23 +7596,55 @@ var Draggable = function (_Component) {
       }
     };
 
-    _this.onLift = function (options) {
-      start('LIFT');
-      var ref = _this.ref;
-      !ref ? process.env.NODE_ENV !== "production" ? invariant(false) : invariant(false) : void 0;
-      !!_this.props.isDragDisabled ? process.env.NODE_ENV !== "production" ? invariant(false, 'Cannot lift a Draggable when it is disabled') : invariant(false) : void 0;
-      var clientSelection = options.clientSelection,
-          movementMode = options.movementMode;
-      var _this$props = _this.props,
-          lift = _this$props.lift,
-          draggableId = _this$props.draggableId;
-      lift({
-        id: draggableId,
-        clientSelection: clientSelection,
-        movementMode: movementMode
-      });
-      finish('LIFT');
-    };
+    _this.onLift = function () {
+      var _ref = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(options) {
+        var ref, clientSelection, movementMode, _this$props, lift, draggableId, beforeLift, liftMe;
+
+        return _regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                ref = _this.ref;
+                !ref ? process.env.NODE_ENV !== "production" ? invariant(false) : invariant(false) : void 0;
+                !!_this.props.isDragDisabled ? process.env.NODE_ENV !== "production" ? invariant(false, 'Cannot lift a Draggable when it is disabled') : invariant(false) : void 0;
+                clientSelection = options.clientSelection, movementMode = options.movementMode;
+                _this$props = _this.props, lift = _this$props.lift, draggableId = _this$props.draggableId, beforeLift = _this$props.beforeLift;
+
+                liftMe = function liftMe() {
+                  lift({
+                    id: draggableId,
+                    clientSelection: clientSelection,
+                    movementMode: movementMode
+                  });
+                };
+
+                if (!(typeof beforeLift == 'function')) {
+                  _context.next = 11;
+                  break;
+                }
+
+                _context.next = 9;
+                return beforeLift(liftMe);
+
+              case 9:
+                _context.next = 12;
+                break;
+
+              case 11:
+                liftMe();
+
+              case 12:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      return function (_x) {
+        return _ref.apply(this, arguments);
+      };
+    }();
 
     _this.setRef = function (ref) {
       if (ref === null) {
@@ -7719,13 +7793,6 @@ var Draggable = function (_Component) {
         return props.moveByWindowScroll({
           newScroll: getWindowScroll()
         });
-      },
-      setCords: function setCords(cords) {
-        return _this.setState({
-          cords: cords
-        }, function () {
-          return console.log('cords set', _this.state);
-        });
       }
     };
     _this.callbacks = callbacks;
@@ -7761,9 +7828,7 @@ var Draggable = function (_Component) {
       droppableId: droppableId,
       type: type,
       index: index,
-      getDraggableRef: this.getDraggableRef,
-      dragableCenterCords: this.state.cords,
-      isDragging: isDragging
+      getDraggableRef: this.getDraggableRef
     }, React.createElement(DragHandle, {
       draggableId: draggableId,
       isDragging: isDragging,
@@ -7954,5 +8019,13 @@ var ConnectedDraggable = connect(makeMapStateToProps$1, mapDispatchToProps, null
   areStatePropsEqual: isStrictEqual
 })(Draggable);
 ConnectedDraggable.defaultProps = defaultProps$1;
+
+window.addEventListener('mousemove', function (e) {
+  var mouseCords = {
+    x: e.pageX,
+    y: e.pageY
+  };
+  window.mouseCords = mouseCords;
+});
 
 export { DragDropContext, ConnectedDroppable as Droppable, ConnectedDraggable as Draggable, resetServerContext };

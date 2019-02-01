@@ -17,6 +17,7 @@ import supportedPageVisibilityEventName from '../util/supported-page-visibility-
 import type { EventBinding } from '../util/event-types';
 import type { MouseSensor, CreateSensorArgs } from './sensor-types';
 import { warning } from '../../../dev-warning';
+import AutoExecutingQueue from '../util/auto-executing-queue';
 
 // Custom event format for force press inputs
 type MouseForceChangedEvent = MouseEvent & {
@@ -40,8 +41,10 @@ export default ({
   getWindow,
   canStartCapturing,
 }: CreateSensorArgs): MouseSensor => {
+  let queue = new AutoExecutingQueue();
+
   let state: State = {
-    isDragging: false,
+    isDragging: false, // boolean -> enum ['not dragging', 'attempt to start dragging', 'dragging']
     pending: null,
   };
   const setState = (newState: State): void => {
@@ -108,50 +111,54 @@ export default ({
     {
       eventName: 'mousemove',
       fn: (event: MouseEvent) => {
-        const { button, clientX, clientY } = event;
-        if (button !== primaryButton) {
-          return;
-        }
+        queue.schelude(() => {
+          const { button, clientX, clientY } = event;
+          if (button !== primaryButton) {
+            return;
+          }
 
-        const point: Position = {
-          x: clientX,
-          y: clientY,
-        };
+          const point: Position = {
+            x: clientX,
+            y: clientY,
+          };
 
-        // Already dragging
-        if (state.isDragging) {
+          // Already dragging
+          if (state.isDragging) {
+            // preventing default as we are using this event
+            event.preventDefault();
+            schedule.move(point);
+            return;
+          }
+
+          // There should be a pending drag at this point
+
+          if (!state.pending) {
+            // this should be an impossible state
+            // we cannot use kill directly as it checks if there is a pending drag
+            stopPendingDrag();
+            invariant(
+              false,
+              'Expected there to be an active or pending drag when window mousemove event is received',
+            );
+          }
+
+          // threshold not yet exceeded
+          if (!isSloppyClickThresholdExceeded(state.pending, point)) {
+            return;
+          }
+
           // preventing default as we are using this event
           event.preventDefault();
-          schedule.move(point);
-          return;
-        }
 
-        // There should be a pending drag at this point
-
-        if (!state.pending) {
-          // this should be an impossible state
-          // we cannot use kill directly as it checks if there is a pending drag
-          stopPendingDrag();
-          invariant(
-            false,
-            'Expected there to be an active or pending drag when window mousemove event is received',
-          );
-        }
-
-        // threshold not yet exceeded
-        if (!isSloppyClickThresholdExceeded(state.pending, point)) {
-          return;
-        }
-
-        // preventing default as we are using this event
-        event.preventDefault();
-        startDragging(() =>{
-          callbacks.onLift({
-            clientSelection: point,
-            movementMode: 'FLUID',
-          })
-        },
-        );
+          startDragging(async () => {
+            queue.block();
+            await callbacks.onLift({
+              clientSelection: point,
+              movementMode: 'FLUID',
+            });
+            queue.unblock();
+          });
+        });
       },
     },
     {

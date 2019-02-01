@@ -95,8 +95,8 @@ export default class Draggable extends Component<Props> {
     super(props, context);
 
     this.state = {
-      cords : null
-    }
+      cords: null,
+    };
 
     const callbacks: DragHandleCallbacks = {
       onLift: this.onLift,
@@ -112,7 +112,6 @@ export default class Draggable extends Component<Props> {
         props.moveByWindowScroll({
           newScroll: getWindowScroll(),
         }),
-      setCords : (cords) => this.setState({cords} , () => console.log('cords set' , this.state))
     };
 
     this.callbacks = callbacks;
@@ -137,11 +136,11 @@ export default class Draggable extends Component<Props> {
     }
   };
 
-  onLift = (options: {
+  onLift = async (options: {
     clientSelection: Position,
     movementMode: MovementMode,
   }) => {
-    timings.start('LIFT');
+    // timings.start('LIFT');
     const ref: ?HTMLElement = this.ref;
     invariant(ref);
     invariant(
@@ -149,14 +148,23 @@ export default class Draggable extends Component<Props> {
       'Cannot lift a Draggable when it is disabled',
     );
     const { clientSelection, movementMode } = options;
-    const { lift, draggableId } = this.props;
+    const { lift, draggableId, beforeLift } = this.props;
 
-    lift({
-      id: draggableId,
-      clientSelection,
-      movementMode,
-    });
-    timings.finish('LIFT');
+    const liftMe = () => {
+      lift({
+        id: draggableId,
+        clientSelection,
+        movementMode,
+      });
+    };
+
+    if (typeof beforeLift == 'function') {
+      await beforeLift(liftMe);
+    } else {
+      liftMe();
+    }
+
+    // timings.finish('LIFT');
   };
 
   // React can call ref callback twice for every render
@@ -353,8 +361,6 @@ export default class Draggable extends Component<Props> {
         type={type}
         index={index}
         getDraggableRef={this.getDraggableRef}
-        dragableCenterCords={this.state.cords}
-        isDragging={isDragging}
       >
         <DragHandle
           draggableId={draggableId}

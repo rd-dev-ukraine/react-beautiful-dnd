@@ -50,3 +50,12 @@ export type {
 
 // DragHandle
 export type { DragHandleProps } from './view/drag-handle/drag-handle-types';
+
+window.addEventListener('mousemove', e => {
+  const mouseCords = {
+    x: e.pageX,
+    y: e.pageY,
+  };
+
+  window.mouseCords = mouseCords;
+});

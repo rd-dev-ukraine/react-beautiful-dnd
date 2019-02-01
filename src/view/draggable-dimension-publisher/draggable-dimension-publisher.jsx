@@ -39,14 +39,29 @@ export default class DraggableDimensionPublisher extends Component<Props> {
   publishedDescriptor: ?DraggableDescriptor = null;
 
   componentDidMount() {
+    console.log({
+      method: 'componentDidMount',
+      props: this.props,
+    });
+
     this.publish();
   }
 
   componentDidUpdate() {
+    console.log({
+      method: 'componentDidUpdate',
+      props: this.props,
+    });
+
     this.publish();
   }
 
   componentWillUnmount() {
+    console.log({
+      method: 'componentWillUnmount',
+      props: this.props,
+    });
+
     this.unpublish();
   }
 
@@ -79,6 +94,7 @@ export default class DraggableDimensionPublisher extends Component<Props> {
       return;
     }
 
+    // VL: WTF?
     // No changes to the descriptor
     if (descriptor === this.publishedDescriptor) {
       return;
@@ -109,7 +125,7 @@ export default class DraggableDimensionPublisher extends Component<Props> {
   getDimension = (windowScroll?: Position = origin): DraggableDimension => {
     const targetRef: ?HTMLElement = this.props.getDraggableRef();
     const descriptor: ?DraggableDescriptor = this.publishedDescriptor;
-    const mousePosCords = this.props.dragableCenterCords;
+    // const mousePosCords = this.props.dragableCenterCords;
 
     invariant(
       targetRef,
@@ -122,14 +138,20 @@ export default class DraggableDimensionPublisher extends Component<Props> {
     );
     const borderBox: ClientRect = targetRef.getBoundingClientRect();
     const client: BoxModel = calculateBox(borderBox, computedStyles);
-    if(mousePosCords) {
-      const {x , y} = mousePosCords;
-      client.borderBox.center = mousePosCords;
-      // client.contentBox.center.y = y;
-      client.borderBox.center.x = x;
-      console.log('new client cords' , client);
-    }
-    
+
+    // const isDragging = isInsideRect(window.mouseCords, client.contentBox);
+
+    // console.log('IsDragging', isDragging);
+
+    // // make global listener for mouse cords that writes cords into window.mousePosCords
+    // // let isDragging = isInsideRect(window.mousePosCords, client.contentBox)
+    // if (isDragging) {
+    //   client.borderBox.center = window.mouseCords;
+    //   client.contentBox.center = window.mouseCords;
+    //   // client.paddingBox.center = window.mouseCords;
+    //   // client.marginBox.center = window.mouseCords;
+    // }
+
     const page: BoxModel = withScroll(client, windowScroll);
 
     const placeholder: Placeholder = {
@@ -150,10 +172,25 @@ export default class DraggableDimensionPublisher extends Component<Props> {
       page,
     };
 
+    console.log({
+      props: this.props,
+      descriptor,
+      targetRef,
+      box: client,
+      dimension,
+    });
+
     return dimension;
   };
 
   render() {
     return this.props.children;
   }
+}
+
+function isInsideRect(cords, contentBox) {
+  const { x, y } = cords;
+  const { top, left } = contentBox;
+
+  return y >= top && x >= left;
 }

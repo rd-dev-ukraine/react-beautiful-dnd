@@ -44,62 +44,62 @@ export default [
   // Universal module definition (UMD) build
   // - including console.* statements
   // - conditionally used to match snapshot size
-  {
-    input,
-    output: {
-      file: 'dist/react-beautiful-dnd.js',
-      format: 'umd',
-      name: 'ReactBeautifulDnd',
-      globals: { react: 'React' },
-    },
-    // Only deep dependency required is React
-    external: ['react'],
-    plugins: [
-      json(),
-      babel(getBabelOptions({ useESModules: true })),
-      resolve({ extensions }),
-      commonjs(commonjsArgs),
-      replace({ 'process.env.NODE_ENV': JSON.stringify('development') }),
-      sizeSnapshot(snapshotArgs),
-    ],
-  },
+  // {
+  //   input,
+  //   output: {
+  //     file: 'dist/react-beautiful-dnd.js',
+  //     format: 'umd',
+  //     name: 'ReactBeautifulDnd',
+  //     globals: { react: 'React' },
+  //   },
+  //   // Only deep dependency required is React
+  //   external: ['react'],
+  //   plugins: [
+  //     json(),
+  //     babel(getBabelOptions({ useESModules: true })),
+  //     resolve({ extensions }),
+  //     commonjs(commonjsArgs),
+  //     replace({ 'process.env.NODE_ENV': JSON.stringify('development') }),
+  //     sizeSnapshot(snapshotArgs),
+  //   ],
+  // },
 
   // Minified UMD build
-  {
-    input,
-    output: {
-      file: 'dist/react-beautiful-dnd.min.js',
-      format: 'umd',
-      name: 'ReactBeautifulDnd',
-      globals: { react: 'React' },
-    },
-    // Only deep dependency required is React
-    external: ['react'],
-    plugins: [
-      json(),
-      babel(getBabelOptions({ useESModules: true })),
-      resolve({ extensions }),
-      commonjs(commonjsArgs),
-      strip({ debugger: true }),
-      replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
-      sizeSnapshot(snapshotArgs),
-      uglify(),
-    ],
-  },
+  // {
+  //   input,
+  //   output: {
+  //     file: 'dist/react-beautiful-dnd.min.js',
+  //     format: 'umd',
+  //     name: 'ReactBeautifulDnd',
+  //     globals: { react: 'React' },
+  //   },
+  //   // Only deep dependency required is React
+  //   external: ['react'],
+  //   plugins: [
+  //     json(),
+  //     babel(getBabelOptions({ useESModules: true })),
+  //     resolve({ extensions }),
+  //     commonjs(commonjsArgs),
+  //     strip({ debugger: true }),
+  //     replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
+  //     sizeSnapshot(snapshotArgs),
+  //     uglify(),
+  //   ],
+  // },
 
   // CommonJS (cjs) build
   // - Keeping console.log statements
   // - All external packages are not bundled
-  {
-    input,
-    output: { file: pkg.main, format: 'cjs' },
-    external: excludeAllExternals,
-    plugins: [
-      json(),
-      resolve({ extensions }),
-      babel(getBabelOptions({ useESModules: false })),
-    ],
-  },
+  // {
+  //   input,
+  //   output: { file: pkg.main, format: 'cjs' },
+  //   external: excludeAllExternals,
+  //   plugins: [
+  //     json(),
+  //     resolve({ extensions }),
+  //     babel(getBabelOptions({ useESModules: false })),
+  //   ],
+  // },
 
   // EcmaScript Module (esm) build
   // - Keeping console.log statements
