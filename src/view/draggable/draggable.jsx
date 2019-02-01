@@ -133,15 +133,23 @@ export default class Draggable extends Component<Props> {
   onMoveEnd = () => {
     if (this.props.dragging && this.props.dragging.dropping) {
       this.props.dropAnimationFinished();
+
+      if (this.props.onDragDrop) {
+        this.props.onDragDrop(this.props.draggableId);
+      }
     }
   };
 
   onLift = async (options: {
     clientSelection: Position,
     movementMode: MovementMode,
+    canExecuteLift: () => boolean,
+    index: number, // index let match if this Lift call was latest,otherwise lift won't be executed.
+    executeDone: () => void,
   }) => {
     // timings.start('LIFT');
     const ref: ?HTMLElement = this.ref;
+
     invariant(ref);
     invariant(
       !this.props.isDragDisabled,
@@ -151,11 +159,16 @@ export default class Draggable extends Component<Props> {
     const { lift, draggableId, beforeLift } = this.props;
 
     const liftMe = () => {
+      if (!options.canExecuteLift(options.index)) {
+        return;
+      }
       lift({
         id: draggableId,
         clientSelection,
         movementMode,
       });
+
+      options.executeDone();
     };
 
     if (typeof beforeLift == 'function') {

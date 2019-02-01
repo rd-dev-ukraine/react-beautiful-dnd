@@ -10,16 +10,16 @@
     "gzipped": 32124
   },
   "dist/react-beautiful-dnd.esm.js": {
-    "bundled": 232151,
-    "minified": 122255,
-    "gzipped": 30506,
+    "bundled": 232428,
+    "minified": 122306,
+    "gzipped": 30517,
     "treeshaked": {
       "rollup": {
-        "code": 83249,
+        "code": 83273,
         "import_statements": 963
       },
       "webpack": {
-        "code": 85634
+        "code": 85658
       }
     }
   }

@@ -12,11 +12,15 @@ export default function() {
 
   this.block = function() {
     this.isBlocked = true;
+    console.log('Context on block', this);
   };
 
   this.unblock = function() {
     this.isBlocked = false;
     this.pendingFns.forEach(f => f());
+
+    console.log('Context on unblock', this);
+
     this.pendingFns = [];
   };
 }

@@ -6513,41 +6513,27 @@ var supportedEventName = function () {
   return supported || base;
 }();
 
-function AutoExecutingQueue () {
-  this.isBlocked = false;
-  this.pendingFns = [];
-
-  this.schelude = function (fn) {
-    if (this.isBlocked) {
-      this.pendingFns.push(fn);
-    } else {
-      fn();
-    }
-  };
-
-  this.block = function () {
-    this.isBlocked = true;
-  };
-
-  this.unblock = function () {
-    this.isBlocked = false;
-    this.pendingFns.forEach(function (f) {
-      return f();
-    });
-    this.pendingFns = [];
-  };
-}
-
 var primaryButton = 0;
 
 var noop = function noop() {};
 
 var mouseDownMarshal = createEventMarshal();
+var liftCounter = {
+  counter: 0,
+  reset: function reset() {
+    this.counter = 0;
+  },
+  inc: function inc() {
+    this.counter++;
+  },
+  equal: function equal(val) {
+    return this.counter === val;
+  }
+};
 var createMouseSensor = (function (_ref) {
   var callbacks = _ref.callbacks,
       getWindow = _ref.getWindow,
       canStartCapturing = _ref.canStartCapturing;
-  var queue = new AutoExecutingQueue();
   var state = {
     isDragging: false,
     pending: null
@@ -6640,62 +6626,71 @@ var createMouseSensor = (function (_ref) {
     kill(callbacks.onCancel);
   };
 
+  var isExecutingLift = false;
   var windowBindings = [{
     eventName: 'mousemove',
     fn: function fn(event) {
-      queue.schelude(function () {
-        var button = event.button,
-            clientX = event.clientX,
-            clientY = event.clientY;
+      var button = event.button,
+          clientX = event.clientX,
+          clientY = event.clientY;
 
-        if (button !== primaryButton) {
-          return;
-        }
+      if (button !== primaryButton) {
+        return;
+      }
 
-        var point = {
-          x: clientX,
-          y: clientY
-        };
+      var point = {
+        x: clientX,
+        y: clientY
+      };
 
-        if (state.isDragging) {
-          event.preventDefault();
-          schedule.move(point);
-          return;
-        }
-
-        if (!state.pending) {
-          stopPendingDrag();
-          process.env.NODE_ENV !== "production" ? invariant(false, 'Expected there to be an active or pending drag when window mousemove event is received') : invariant(false);
-        }
-
-        if (!isSloppyClickThresholdExceeded(state.pending, point)) {
-          return;
-        }
-
+      if (state.isDragging) {
         event.preventDefault();
-        startDragging(_asyncToGenerator(_regeneratorRuntime.mark(function _callee() {
-          return _regeneratorRuntime.wrap(function _callee$(_context) {
-            while (1) {
-              switch (_context.prev = _context.next) {
-                case 0:
-                  queue.block();
-                  _context.next = 3;
-                  return callbacks.onLift({
-                    clientSelection: point,
-                    movementMode: 'FLUID'
-                  });
 
-                case 3:
-                  queue.unblock();
+        if (!isExecutingLift) {
+          schedule.move(point);
+        }
 
-                case 4:
-                case "end":
-                  return _context.stop();
-              }
+        return;
+      }
+
+      if (!state.pending) {
+        stopPendingDrag();
+        process.env.NODE_ENV !== "production" ? invariant(false, 'Expected there to be an active or pending drag when window mousemove event is received') : invariant(false);
+      }
+
+      if (!isSloppyClickThresholdExceeded(state.pending, point)) {
+        return;
+      }
+
+      event.preventDefault();
+      isExecutingLift = true;
+      startDragging(_asyncToGenerator(_regeneratorRuntime.mark(function _callee() {
+        return _regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                liftCounter.inc();
+                _context.next = 3;
+                return callbacks.onLift({
+                  clientSelection: point,
+                  movementMode: 'FLUID',
+                  canExecuteLift: function canExecuteLift(index) {
+                    return liftCounter.equal(index) && mouseDownMarshal.isHandled();
+                  },
+                  index: liftCounter.counter,
+                  executeDone: function executeDone() {
+                    isExecutingLift = false;
+                    liftCounter.reset();
+                  }
+                });
+
+              case 3:
+              case "end":
+                return _context.stop();
             }
-          }, _callee, this);
-        })));
-      });
+          }
+        }, _callee, this);
+      })));
     }
   }, {
     eventName: 'mouseup',
@@ -7593,6 +7588,10 @@ var Draggable = function (_Component) {
     _this.onMoveEnd = function () {
       if (_this.props.dragging && _this.props.dragging.dropping) {
         _this.props.dropAnimationFinished();
+
+        if (_this.props.onDragDrop) {
+          _this.props.onDragDrop();
+        }
       }
     };
 
@@ -7611,11 +7610,16 @@ var Draggable = function (_Component) {
                 _this$props = _this.props, lift = _this$props.lift, draggableId = _this$props.draggableId, beforeLift = _this$props.beforeLift;
 
                 liftMe = function liftMe() {
+                  if (!options.canExecuteLift(options.index)) {
+                    return;
+                  }
+
                   lift({
                     id: draggableId,
                     clientSelection: clientSelection,
                     movementMode: movementMode
                   });
+                  options.executeDone();
                 };
 
                 if (!(typeof beforeLift == 'function')) {
