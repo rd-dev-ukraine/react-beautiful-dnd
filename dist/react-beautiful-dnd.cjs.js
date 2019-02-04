@@ -1,20 +1,27 @@
-import _extends from '@babel/runtime-corejs2/helpers/esm/extends';
-import _inheritsLoose from '@babel/runtime-corejs2/helpers/esm/inheritsLoose';
-import React, { PureComponent, Component, Fragment } from 'react';
-import { compose, createStore, applyMiddleware, bindActionCreators } from 'redux';
-import invariant from 'tiny-invariant';
-import PropTypes from 'prop-types';
-import { getRect, createBox, withScroll, offset, getBox, expand, calculateBox } from 'css-box-model';
-import memoizeOne from 'memoize-one';
-import _Object$values from '@babel/runtime-corejs2/core-js/object/values';
-import _Object$keys from '@babel/runtime-corejs2/core-js/object/keys';
-import _Object$assign from '@babel/runtime-corejs2/core-js/object/assign';
-import _Date$now from '@babel/runtime-corejs2/core-js/date/now';
-import rafSchd from 'raf-schd';
-import { connect } from 'react-redux';
-import _regeneratorRuntime from '@babel/runtime-corejs2/regenerator';
-import _asyncToGenerator from '@babel/runtime-corejs2/helpers/esm/asyncToGenerator';
-import _Number$isInteger from '@babel/runtime-corejs2/core-js/number/is-integer';
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var _extends = _interopDefault(require('@babel/runtime-corejs2/helpers/extends'));
+var _inheritsLoose = _interopDefault(require('@babel/runtime-corejs2/helpers/inheritsLoose'));
+var React = require('react');
+var React__default = _interopDefault(React);
+var redux = require('redux');
+var invariant = _interopDefault(require('tiny-invariant'));
+var PropTypes = _interopDefault(require('prop-types'));
+var cssBoxModel = require('css-box-model');
+var memoizeOne = _interopDefault(require('memoize-one'));
+var _Object$values = _interopDefault(require('@babel/runtime-corejs2/core-js/object/values'));
+var _Object$keys = _interopDefault(require('@babel/runtime-corejs2/core-js/object/keys'));
+var _Object$assign = _interopDefault(require('@babel/runtime-corejs2/core-js/object/assign'));
+var _Date$now = _interopDefault(require('@babel/runtime-corejs2/core-js/date/now'));
+var rafSchd = _interopDefault(require('raf-schd'));
+var reactRedux = require('react-redux');
+var _regeneratorRuntime = _interopDefault(require('@babel/runtime-corejs2/regenerator'));
+var _asyncToGenerator = _interopDefault(require('@babel/runtime-corejs2/helpers/asyncToGenerator'));
+var _Number$isInteger = _interopDefault(require('@babel/runtime-corejs2/core-js/number/is-integer'));
 
 var origin = {
   x: 0,
@@ -68,7 +75,7 @@ var apply = function apply(fn) {
 };
 
 var executeClip = (function (frame, subject) {
-  var result = getRect({
+  var result = cssBoxModel.getRect({
     top: Math.max(subject.top, frame.top),
     right: Math.min(subject.right, frame.right),
     bottom: Math.min(subject.bottom, frame.bottom),
@@ -132,7 +139,7 @@ var clip = function clip(target, frame) {
     return executeClip(frame.pageMarginBox, target);
   }
 
-  return getRect(target);
+  return cssBoxModel.getRect(target);
 };
 
 var getSubject = (function (_ref) {
@@ -846,11 +853,11 @@ var getDragPositions = (function (_ref) {
 
   var current = function () {
     var reverse = negate(shift);
-    var offset$$1 = add(oldCurrent.client.offset, reverse);
+    var offset = add(oldCurrent.client.offset, reverse);
     var client = {
-      selection: add(initial.client.selection, offset$$1),
-      borderBoxCenter: add(initial.client.borderBoxCenter, offset$$1),
-      offset: offset$$1
+      selection: add(initial.client.selection, offset),
+      borderBoxCenter: add(initial.client.borderBoxCenter, offset),
+      offset: offset
     };
     var page = {
       selection: add(client.selection, viewport.scroll.current),
@@ -1096,7 +1103,7 @@ var adjustModifiedDroppables = (function (_ref) {
       !isFrameEqual ? process.env.NODE_ENV !== "production" ? invariant(false, 'The width and height of your Droppable scroll container cannot change when adding or removing Draggables during a drag') : invariant(false) : void 0;
     }
 
-    var client = createBox({
+    var client = cssBoxModel.createBox({
       borderBox: adjustBorderBoxSize(existing.axis, oldClient.borderBox, newClient.borderBox),
       margin: oldClient.margin,
       border: oldClient.border,
@@ -1104,7 +1111,7 @@ var adjustModifiedDroppables = (function (_ref) {
     });
     var closest = {
       client: oldScrollable.frameClient,
-      page: withScroll(oldScrollable.frameClient, initialWindowScroll),
+      page: cssBoxModel.withScroll(oldScrollable.frameClient, initialWindowScroll),
       shouldClipSubject: oldScrollable.shouldClipSubject,
       scrollSize: newScrollable.scrollSize,
       scroll: oldScrollable.scroll.initial
@@ -1116,7 +1123,7 @@ var adjustModifiedDroppables = (function (_ref) {
       isFixedOnPage: provided.isFixedOnPage,
       direction: provided.axis.direction,
       client: client,
-      page: withScroll(client, initialWindowScroll),
+      page: cssBoxModel.withScroll(client, initialWindowScroll),
       closest: closest
     });
     var scrolled = scrollDroppable(withSizeChanged, newScrollable.scroll.current);
@@ -1138,8 +1145,8 @@ var adjustAdditionsForScrollChanges = (function (_ref) {
     !frame ? process.env.NODE_ENV !== "production" ? invariant(false) : invariant(false) : void 0;
     var droppableScrollChange = frame.scroll.diff.value;
     var totalChange = add(windowScrollChange, droppableScrollChange);
-    var client = offset(draggable.client, totalChange);
-    var page = withScroll(client, viewport.scroll.initial);
+    var client = cssBoxModel.offset(draggable.client, totalChange);
+    var page = cssBoxModel.withScroll(client, viewport.scroll.initial);
 
     var moved = _extends({}, draggable, {
       placeholder: _extends({}, draggable.placeholder, {
@@ -1191,7 +1198,7 @@ var getDraggableMap = (function (_ref) {
         return true;
       }
 
-      var offset$$1 = negate(patch(axis.line, item.client.marginBox[axis.size]));
+      var offset = negate(patch(axis.line, item.client.marginBox[axis.size]));
       original.slice(index).forEach(function (sibling) {
         if (removals[sibling.descriptor.id]) {
           return;
@@ -1199,7 +1206,7 @@ var getDraggableMap = (function (_ref) {
 
         addShift(sibling.descriptor.id, {
           indexChange: -1,
-          offset: offset$$1
+          offset: offset
         });
       });
       return false;
@@ -1219,7 +1226,7 @@ var getDraggableMap = (function (_ref) {
         return;
       }
 
-      var offset$$1 = patch(axis.line, item.client.marginBox[axis.size]);
+      var offset = patch(axis.line, item.client.marginBox[axis.size]);
       withAdditions.slice(index).forEach(function (sibling) {
         if (additionMap[sibling.descriptor.id]) {
           return;
@@ -1227,7 +1234,7 @@ var getDraggableMap = (function (_ref) {
 
         addShift(sibling.descriptor.id, {
           indexChange: 1,
-          offset: offset$$1
+          offset: offset
         });
       });
     });
@@ -1242,8 +1249,8 @@ var getDraggableMap = (function (_ref) {
         return;
       }
 
-      var client = offset(item.client, shift.offset);
-      var page = withScroll(client, initialWindowScroll);
+      var client = cssBoxModel.offset(item.client, shift.offset);
+      var page = cssBoxModel.withScroll(client, initialWindowScroll);
       var index = item.descriptor.index + shift.indexChange;
 
       var moved = _extends({}, item, {
@@ -1750,7 +1757,7 @@ var whenReordering = (function (_ref) {
     });
   }
 
-  var displacedClosest = offset(closest.page, displacedBy.point);
+  var displacedClosest = cssBoxModel.offset(closest.page, displacedBy.point);
 
   if (willDisplaceForward) {
     return goBefore({
@@ -1948,8 +1955,8 @@ var getClientFromPageBorderBoxCenter = (function (_ref) {
       draggable = _ref.draggable,
       viewport = _ref.viewport;
   var withoutPageScrollChange = withViewportDisplacement(viewport, pageBorderBoxCenter);
-  var offset$$1 = subtract(withoutPageScrollChange, draggable.page.borderBox.center);
-  return add(draggable.client.borderBox.center, offset$$1);
+  var offset = subtract(withoutPageScrollChange, draggable.page.borderBox.center);
+  return add(draggable.client.borderBox.center, offset);
 });
 
 var moveCrossAxis = (function (_ref) {
@@ -2311,7 +2318,7 @@ var moveToNextIndex = (function (_ref2) {
 var scrollViewport = (function (viewport, newScroll) {
   var diff = subtract(newScroll, viewport.scroll.initial);
   var displacement = negate(diff);
-  var frame = getRect({
+  var frame = cssBoxModel.getRect({
     top: newScroll.y,
     bottom: newScroll.y + viewport.frame.height,
     left: newScroll.x,
@@ -2541,11 +2548,11 @@ var update = (function (_ref) {
   var currentWindowScroll = viewport.scroll.current;
   var dimensions = forcedDimensions || state.dimensions;
   var clientSelection = forcedClientSelection || state.current.client.selection;
-  var offset$$1 = subtract(clientSelection, state.initial.client.selection);
+  var offset = subtract(clientSelection, state.initial.client.selection);
   var client = {
-    offset: offset$$1,
+    offset: offset,
     selection: clientSelection,
-    borderBoxCenter: add(state.initial.client.borderBoxCenter, offset$$1)
+    borderBoxCenter: add(state.initial.client.borderBoxCenter, offset)
   };
   var page = {
     selection: add(client.selection, currentWindowScroll),
@@ -2799,14 +2806,14 @@ var reducer = (function (state, action) {
     !isMovementAllowed(state) ? process.env.NODE_ENV !== "production" ? invariant(false, action.type + " not permitted in phase " + state.phase) : invariant(false) : void 0;
     var _action$payload2 = action.payload,
         id = _action$payload2.id,
-        offset$$1 = _action$payload2.offset;
+        offset = _action$payload2.offset;
     var target = state.dimensions.droppables[id];
 
     if (!target) {
       return state;
     }
 
-    var scrolled = scrollDroppable(target, offset$$1);
+    var scrolled = scrollDroppable(target, offset);
     return postDroppableChange(state, scrolled, false);
   }
 
@@ -3183,8 +3190,8 @@ var getNewHomeClientOffset = (function (_ref) {
     droppable: destination || home,
     viewport: viewport
   });
-  var offset$$1 = subtract(newClientCenter, draggable.client.borderBox.center);
-  return offset$$1;
+  var offset = subtract(newClientCenter, draggable.client.borderBox.center);
+  return offset;
 });
 
 var drop$1 = (function (_ref) {
@@ -3820,14 +3827,14 @@ var updateViewportMaxScrollOnDestinationChange = (function (store) {
   };
 });
 
-var composeEnhancers = typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ : compose;
-var createStore$1 = (function (_ref) {
+var composeEnhancers = typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ : redux.compose;
+var createStore = (function (_ref) {
   var getDimensionMarshal = _ref.getDimensionMarshal,
       styleMarshal = _ref.styleMarshal,
       getResponders = _ref.getResponders,
       announce = _ref.announce,
       getScroller = _ref.getScroller;
-  return createStore(reducer, composeEnhancers(applyMiddleware(style(styleMarshal), dimensionMarshalStopper(getDimensionMarshal), lift$1(getDimensionMarshal), drop$1, dropAnimationFinish, pendingDrop, updateViewportMaxScrollOnDestinationChange, autoScroll(getScroller), responders(getResponders, announce))));
+  return redux.createStore(reducer, composeEnhancers(redux.applyMiddleware(style(styleMarshal), dimensionMarshalStopper(getDimensionMarshal), lift$1(getDimensionMarshal), drop$1, dropAnimationFinish, pendingDrop, updateViewportMaxScrollOnDestinationChange, autoScroll(getScroller), responders(getResponders, announce))));
 });
 
 var clean$2 = function clean() {
@@ -3958,7 +3965,7 @@ var getViewport = (function () {
   var height = doc.clientHeight;
   var right = left + width;
   var bottom = top + height;
-  var frame = getRect({
+  var frame = cssBoxModel.getRect({
     top: top,
     left: left,
     right: right,
@@ -4234,14 +4241,14 @@ var transitions = {
   outOfTheWay: "transform " + outOfTheWayTiming
 };
 
-var moveTo = function moveTo(offset$$1) {
-  return isEqual(offset$$1, origin) ? null : "translate(" + offset$$1.x + "px, " + offset$$1.y + "px)";
+var moveTo = function moveTo(offset) {
+  return isEqual(offset, origin) ? null : "translate(" + offset.x + "px, " + offset.y + "px)";
 };
 
 var transforms = {
   moveTo: moveTo,
-  drop: function drop(offset$$1, isCombining) {
-    var translate = moveTo(offset$$1);
+  drop: function drop(offset, isCombining) {
+    var translate = moveTo(offset);
 
     if (!translate) {
       return null;
@@ -5015,8 +5022,8 @@ var createJumpScroller = (function (_ref) {
       scrollDroppable = _ref.scrollDroppable,
       scrollWindow = _ref.scrollWindow;
 
-  var moveByOffset = function moveByOffset(state, offset$$1) {
-    var client = add(state.current.client.selection, offset$$1);
+  var moveByOffset = function moveByOffset(state, offset) {
+    var client = add(state.current.client.selection, offset);
     move({
       client: client
     });
@@ -5271,7 +5278,7 @@ var DragDropContext = function (_React$Component) {
 
     _this.announcer = createAnnouncer();
     _this.styleMarshal = createStyleMarshal();
-    _this.store = createStore$1({
+    _this.store = createStore({
       getDimensionMarshal: function getDimensionMarshal() {
         return _this.dimensionMarshal;
       },
@@ -5289,7 +5296,7 @@ var DragDropContext = function (_React$Component) {
         return _this.autoScroller;
       }
     });
-    var callbacks = bindActionCreators({
+    var callbacks = redux.bindActionCreators({
       publishWhileDragging: publishWhileDragging$1,
       updateDroppableScroll: updateDroppableScroll,
       updateDroppableIsEnabled: updateDroppableIsEnabled,
@@ -5300,7 +5307,7 @@ var DragDropContext = function (_React$Component) {
     _this.autoScroller = createAutoScroller(_extends({
       scrollWindow: scrollWindow,
       scrollDroppable: _this.dimensionMarshal.scrollDroppable
-    }, bindActionCreators({
+    }, redux.bindActionCreators({
       move: move
     }, _this.store.dispatch)));
     return _this;
@@ -5320,7 +5327,7 @@ var DragDropContext = function (_React$Component) {
     this.announcer.mount();
 
     if (process.env.NODE_ENV !== 'production') {
-      checkReactVersion(peerDependencies.react, React.version);
+      checkReactVersion(peerDependencies.react, React__default.version);
       checkDoctype(document);
     }
   };
@@ -5353,7 +5360,7 @@ var DragDropContext = function (_React$Component) {
   };
 
   return DragDropContext;
-}(React.Component);
+}(React__default.Component);
 
 DragDropContext.childContextTypes = (_DragDropContext$chil = {}, _DragDropContext$chil[storeKey] = PropTypes.shape({
   dispatch: PropTypes.func.isRequired,
@@ -5480,7 +5487,7 @@ var getEnv = (function (start) {
 });
 
 var getClient = function getClient(targetRef, closestScrollable) {
-  var base = getBox(targetRef);
+  var base = cssBoxModel.getBox(targetRef);
 
   if (!closestScrollable) {
     return base;
@@ -5500,8 +5507,8 @@ var getClient = function getClient(targetRef, closestScrollable) {
     bottom: bottom,
     left: left
   };
-  var borderBox = expand(paddingBox, base.border);
-  var client = createBox({
+  var borderBox = cssBoxModel.expand(paddingBox, base.border);
+  var client = cssBoxModel.createBox({
     borderBox: borderBox,
     margin: base.margin,
     border: base.border,
@@ -5521,21 +5528,21 @@ var getDimension = (function (_ref) {
       shouldClipSubject = _ref.shouldClipSubject;
   var closestScrollable = env.closestScrollable;
   var client = getClient(ref, closestScrollable);
-  var page = withScroll(client, windowScroll);
+  var page = cssBoxModel.withScroll(client, windowScroll);
 
   var closest = function () {
     if (!closestScrollable) {
       return null;
     }
 
-    var frameClient = getBox(closestScrollable);
+    var frameClient = cssBoxModel.getBox(closestScrollable);
     var scrollSize = {
       scrollHeight: closestScrollable.scrollHeight,
       scrollWidth: closestScrollable.scrollWidth
     };
     return {
       client: frameClient,
-      page: withScroll(frameClient, windowScroll),
+      page: cssBoxModel.withScroll(frameClient, windowScroll),
       scroll: getScroll$1(closestScrollable),
       scrollSize: scrollSize,
       shouldClipSubject: shouldClipSubject
@@ -5804,7 +5811,7 @@ var DroppableDimensionPublisher = function (_React$Component) {
   };
 
   return DroppableDimensionPublisher;
-}(React.Component);
+}(React__default.Component);
 
 DroppableDimensionPublisher.contextTypes = (_DroppableDimensionPu = {}, _DroppableDimensionPu[dimensionMarshalKey] = PropTypes.object.isRequired, _DroppableDimensionPu);
 
@@ -5835,14 +5842,14 @@ var Placeholder = function (_PureComponent) {
       flexGrow: '0',
       pointerEvents: 'none'
     };
-    return React.createElement(tagName, {
+    return React__default.createElement(tagName, {
       style: style,
       ref: this.props.innerRef
     });
   };
 
   return Placeholder;
-}(PureComponent);
+}(React.PureComponent);
 
 var getWindowFromEl = (function (el) {
   return el && el.ownerDocument ? el.ownerDocument.defaultView : window;
@@ -5954,7 +5961,7 @@ var Droppable = function (_Component) {
       return null;
     }
 
-    return React.createElement(Placeholder, {
+    return React__default.createElement(Placeholder, {
       placeholder: this.props.placeholder,
       innerRef: this.setPlaceholderRef
     });
@@ -5982,7 +5989,7 @@ var Droppable = function (_Component) {
       isDraggingOver: isDraggingOver,
       draggingOverWith: draggingOverWith
     };
-    return React.createElement(DroppableDimensionPublisher, {
+    return React__default.createElement(DroppableDimensionPublisher, {
       droppableId: droppableId,
       type: type,
       direction: direction,
@@ -5995,7 +6002,7 @@ var Droppable = function (_Component) {
   };
 
   return Droppable;
-}(Component);
+}(React.Component);
 
 Droppable.contextTypes = (_Droppable$contextTyp = {}, _Droppable$contextTyp[styleContextKey] = PropTypes.string.isRequired, _Droppable$contextTyp);
 Droppable.childContextTypes = (_Droppable$childConte = {}, _Droppable$childConte[droppableIdKey] = PropTypes.string.isRequired, _Droppable$childConte[droppableTypeKey] = PropTypes.string.isRequired, _Droppable$childConte);
@@ -6059,7 +6066,7 @@ var defaultProps = {
   isCombineEnabled: false,
   ignoreContainerClipping: false
 };
-var ConnectedDroppable = connect(makeMapStateToProps, null, null, {
+var ConnectedDroppable = reactRedux.connect(makeMapStateToProps, null, null, {
   storeKey: storeKey,
   pure: true,
   areStatePropsEqual: isStrictEqual
@@ -6127,8 +6134,8 @@ var DraggableDimensionPublisher = function (_Component) {
       !descriptor ? process.env.NODE_ENV !== "production" ? invariant(false, 'Cannot get dimension for unpublished draggable') : invariant(false) : void 0;
       var computedStyles = window.getComputedStyle(targetRef);
       var borderBox = targetRef.getBoundingClientRect();
-      var client = calculateBox(borderBox, computedStyles);
-      var page = withScroll(client, windowScroll);
+      var client = cssBoxModel.calculateBox(borderBox, computedStyles);
+      var page = cssBoxModel.withScroll(client, windowScroll);
       var placeholder = {
         client: client,
         tagName: targetRef.tagName.toLowerCase(),
@@ -6189,7 +6196,7 @@ var DraggableDimensionPublisher = function (_Component) {
   };
 
   return DraggableDimensionPublisher;
-}(Component);
+}(React.Component);
 
 DraggableDimensionPublisher.contextTypes = (_DraggableDimensionPu = {}, _DraggableDimensionPu[dimensionMarshalKey] = PropTypes.object.isRequired, _DraggableDimensionPu);
 
@@ -6818,7 +6825,7 @@ var createMouseSensor = (function (_ref) {
 });
 
 var getBorderBoxCenterPosition = (function (el) {
-  return getRect(el.getBoundingClientRect()).center;
+  return cssBoxModel.getRect(el.getBoundingClientRect()).center;
 });
 
 var _scrollJumpKeys;
@@ -7530,7 +7537,7 @@ var DragHandle = function (_Component) {
   };
 
   return DragHandle;
-}(Component);
+}(React.Component);
 
 DragHandle.contextTypes = (_DragHandle$contextTy = {}, _DragHandle$contextTy[styleContextKey] = PropTypes.string.isRequired, _DragHandle$contextTy[canLiftContextKey] = PropTypes.func.isRequired, _DragHandle$contextTy);
 
@@ -7670,13 +7677,13 @@ var Draggable = function (_Component) {
     _this.getDraggingStyle = memoizeOne(function (dragging) {
       var dimension = dragging.dimension;
       var box = dimension.client;
-      var offset$$1 = dragging.offset,
+      var offset = dragging.offset,
           combineWith = dragging.combineWith,
           dropping = dragging.dropping;
       var isCombining = Boolean(combineWith);
       var shouldAnimate = getShouldDraggingAnimate(dragging);
       var isDropAnimating = Boolean(dropping);
-      var transform = isDropAnimating ? transforms.drop(offset$$1, isCombining) : transforms.moveTo(offset$$1);
+      var transform = isDropAnimating ? transforms.drop(offset, isCombining) : transforms.moveTo(offset);
       var style = {
         position: 'fixed',
         top: box.marginBox.top,
@@ -7758,15 +7765,15 @@ var Draggable = function (_Component) {
       if (dragging) {
         var _child = children(_this.getDraggingProvided(dragging, dragHandleProps), _this.getDraggingSnapshot(dragging));
 
-        var placeholder = React.createElement(Placeholder, {
+        var placeholder = React__default.createElement(Placeholder, {
           placeholder: dragging.dimension.placeholder
         });
-        return React.createElement(Fragment, null, _child, placeholder);
+        return React__default.createElement(React.Fragment, null, _child, placeholder);
       }
 
       !secondary ? process.env.NODE_ENV !== "production" ? invariant(false, 'If no DraggingMapProps are provided, then SecondaryMapProps are required') : invariant(false) : void 0;
       var child = children(_this.getSecondaryProvided(secondary, dragHandleProps), _this.getSecondarySnapshot(secondary));
-      return React.createElement(Fragment, null, child);
+      return React__default.createElement(React.Fragment, null, child);
     };
 
     _this.state = {
@@ -7826,14 +7833,14 @@ var Draggable = function (_Component) {
     var type = this.context[droppableTypeKey];
     var isDragging = Boolean(dragging);
     var isDropAnimating = Boolean(dragging && dragging.dropping);
-    return React.createElement(DraggableDimensionPublisher, {
+    return React__default.createElement(DraggableDimensionPublisher, {
       key: draggableId,
       draggableId: draggableId,
       droppableId: droppableId,
       type: type,
       index: index,
       getDraggableRef: this.getDraggableRef
-    }, React.createElement(DragHandle, {
+    }, React__default.createElement(DragHandle, {
       draggableId: draggableId,
       isDragging: isDragging,
       isDropAnimating: isDropAnimating,
@@ -7845,7 +7852,7 @@ var Draggable = function (_Component) {
   };
 
   return Draggable;
-}(Component);
+}(React.Component);
 
 Draggable.contextTypes = (_Draggable$contextTyp = {}, _Draggable$contextTyp[droppableIdKey] = PropTypes.string.isRequired, _Draggable$contextTyp[droppableTypeKey] = PropTypes.string.isRequired, _Draggable$contextTyp[styleContextKey] = PropTypes.string.isRequired, _Draggable$contextTyp);
 
@@ -7872,26 +7879,26 @@ var makeMapStateToProps$1 = function makeMapStateToProps() {
       y: y
     };
   });
-  var getSecondaryProps = memoizeOne(function (offset$$1, combineTargetFor, shouldAnimateDisplacement) {
+  var getSecondaryProps = memoizeOne(function (offset, combineTargetFor, shouldAnimateDisplacement) {
     if (combineTargetFor === void 0) {
       combineTargetFor = null;
     }
 
     return {
       secondary: {
-        offset: offset$$1,
+        offset: offset,
         combineTargetFor: combineTargetFor,
         shouldAnimateDisplacement: shouldAnimateDisplacement
       },
       dragging: null
     };
   });
-  var getDraggingProps = memoizeOne(function (offset$$1, mode, dimension, draggingOver, combineWith, forceShouldAnimate) {
+  var getDraggingProps = memoizeOne(function (offset, mode, dimension, draggingOver, combineWith, forceShouldAnimate) {
     return {
       dragging: {
         mode: mode,
         dropping: null,
-        offset: offset$$1,
+        offset: offset,
         dimension: dimension,
         draggingOver: draggingOver,
         combineWith: combineWith,
@@ -7908,10 +7915,10 @@ var makeMapStateToProps$1 = function makeMapStateToProps() {
     var merge = impact.merge;
     var isCombinedWith = Boolean(merge && merge.combine.draggableId === ownId);
     var displacedBy = movement.displacedBy.point;
-    var offset$$1 = memoizedOffset(displacedBy.x, displacedBy.y);
+    var offset = memoizedOffset(displacedBy.x, displacedBy.y);
 
     if (isCombinedWith) {
-      return getSecondaryProps(displacement ? offset$$1 : origin, draggingId, displacement ? displacement.shouldAnimate : true);
+      return getSecondaryProps(displacement ? offset : origin, draggingId, displacement ? displacement.shouldAnimate : true);
     }
 
     if (!displacement) {
@@ -7922,7 +7929,7 @@ var makeMapStateToProps$1 = function makeMapStateToProps() {
       return null;
     }
 
-    return getSecondaryProps(offset$$1, null, displacement.shouldAnimate);
+    return getSecondaryProps(offset, null, displacement.shouldAnimate);
   };
 
   var draggingSelector = function draggingSelector(state, ownProps) {
@@ -7931,13 +7938,13 @@ var makeMapStateToProps$1 = function makeMapStateToProps() {
         return null;
       }
 
-      var offset$$1 = state.current.client.offset;
+      var offset = state.current.client.offset;
       var dimension = state.dimensions.draggables[ownProps.draggableId];
       var mode = state.movementMode;
       var draggingOver = whatIsDraggedOver(state.impact);
       var combineWith = getCombineWith(state.impact);
       var forceShouldAnimate = state.forceShouldAnimate;
-      return getDraggingProps(memoizedOffset(offset$$1.x, offset$$1.y), mode, dimension, draggingOver, combineWith, forceShouldAnimate);
+      return getDraggingProps(memoizedOffset(offset.x, offset.y), mode, dimension, draggingOver, combineWith, forceShouldAnimate);
     }
 
     if (state.phase === 'DROP_ANIMATING') {
@@ -8017,7 +8024,7 @@ var defaultProps$1 = {
   isDragDisabled: false,
   disableInteractiveElementBlocking: false
 };
-var ConnectedDraggable = connect(makeMapStateToProps$1, mapDispatchToProps, null, {
+var ConnectedDraggable = reactRedux.connect(makeMapStateToProps$1, mapDispatchToProps, null, {
   storeKey: storeKey,
   pure: true,
   areStatePropsEqual: isStrictEqual
@@ -8032,4 +8039,7 @@ window.addEventListener('mousemove', function (e) {
   window.mouseCords = mouseCords;
 });
 
-export { DragDropContext, ConnectedDroppable as Droppable, ConnectedDraggable as Draggable, resetServerContext };
+exports.DragDropContext = DragDropContext;
+exports.Droppable = ConnectedDroppable;
+exports.Draggable = ConnectedDraggable;
+exports.resetServerContext = resetServerContext;
