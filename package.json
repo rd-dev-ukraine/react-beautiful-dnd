@@ -50,7 +50,8 @@
     "build-storybook": "build-storybook -c .storybook -o site",
     "website:start": "cd website && yarn develop",
     "website:build": "cd website && yarn build",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build",
+    "prepare": "yarn build"
   },
   "dependencies": {
     "@babel/runtime-corejs2": "^7.3.0",
