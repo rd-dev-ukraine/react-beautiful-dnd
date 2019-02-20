@@ -39,29 +39,16 @@ export default class DraggableDimensionPublisher extends Component<Props> {
   publishedDescriptor: ?DraggableDescriptor = null;
 
   componentDidMount() {
-    console.log({
-      method: 'componentDidMount',
-      props: this.props,
-    });
 
     this.publish();
   }
 
   componentDidUpdate() {
-    console.log({
-      method: 'componentDidUpdate',
-      props: this.props,
-    });
 
     this.publish();
   }
 
   componentWillUnmount() {
-    console.log({
-      method: 'componentWillUnmount',
-      props: this.props,
-    });
-
     this.unpublish();
   }
 
@@ -171,14 +158,6 @@ export default class DraggableDimensionPublisher extends Component<Props> {
       client,
       page,
     };
-
-    console.log({
-      props: this.props,
-      descriptor,
-      targetRef,
-      box: client,
-      dimension,
-    });
 
     return dimension;
   };

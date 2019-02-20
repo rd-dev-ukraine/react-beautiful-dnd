@@ -102,7 +102,10 @@ export default class Draggable extends Component<Props> {
       onLift: this.onLift,
       onMove: (clientSelection: Position) =>
         props.move({ client: clientSelection }),
-      onDrop: () => props.drop({ reason: 'DROP' }),
+      onDrop: () => {
+        props.drop({ reason: 'DROP' });
+        props.onDragDrop && props.onDragDrop();
+      },
       onCancel: () => props.drop({ reason: 'CANCEL' }),
       onMoveUp: props.moveUp,
       onMoveDown: props.moveDown,
@@ -133,10 +136,6 @@ export default class Draggable extends Component<Props> {
   onMoveEnd = () => {
     if (this.props.dragging && this.props.dragging.dropping) {
       this.props.dropAnimationFinished();
-
-      if (this.props.onDragDrop) {
-        this.props.onDragDrop(this.props.draggableId);
-      }
     }
   };
 

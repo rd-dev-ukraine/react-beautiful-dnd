@@ -6152,13 +6152,6 @@ var DraggableDimensionPublisher = function (_Component) {
         client: client,
         page: page
       };
-      console.log({
-        props: _this.props,
-        descriptor: descriptor,
-        targetRef: targetRef,
-        box: client,
-        dimension: dimension
-      });
       return dimension;
     };
 
@@ -6168,26 +6161,14 @@ var DraggableDimensionPublisher = function (_Component) {
   var _proto = DraggableDimensionPublisher.prototype;
 
   _proto.componentDidMount = function componentDidMount() {
-    console.log({
-      method: 'componentDidMount',
-      props: this.props
-    });
     this.publish();
   };
 
   _proto.componentDidUpdate = function componentDidUpdate() {
-    console.log({
-      method: 'componentDidUpdate',
-      props: this.props
-    });
     this.publish();
   };
 
   _proto.componentWillUnmount = function componentWillUnmount() {
-    console.log({
-      method: 'componentWillUnmount',
-      props: this.props
-    });
     this.unpublish();
   };
 
@@ -7595,10 +7576,6 @@ var Draggable = function (_Component) {
     _this.onMoveEnd = function () {
       if (_this.props.dragging && _this.props.dragging.dropping) {
         _this.props.dropAnimationFinished();
-
-        if (_this.props.onDragDrop) {
-          _this.props.onDragDrop(_this.props.draggableId);
-        }
       }
     };
 
@@ -7787,9 +7764,10 @@ var Draggable = function (_Component) {
         });
       },
       onDrop: function onDrop() {
-        return props.drop({
+        props.drop({
           reason: 'DROP'
         });
+        props.onDragDrop && props.onDragDrop();
       },
       onCancel: function onCancel() {
         return props.drop({
